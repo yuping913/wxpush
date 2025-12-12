@@ -109,7 +109,7 @@ https://<您的Worker地址>/wxsend
 | `secret`     | String | 否         | 覆盖默认的微信 AppSecret。                                   |
 | `userid`     | String | 否         | 覆盖默认的接收用户 OpenID。                                  |
 | `template_id`| String | 否         | 覆盖默认的模板消息 ID。                                      |
-| `base_url`   | String | 否         | 覆盖默认的跳转 URL。                                         |
+| `base_url`   | String | 否         | 覆盖默认的跳转 URL。 默认为 `https://your-worker.workers.dev/message`                                        |
 
 ### 使用示例
 
