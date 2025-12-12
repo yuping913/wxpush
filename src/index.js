@@ -65,9 +65,6 @@ export default {
 
     if (url.pathname === '/wxsend') {
       const params = await getParams(request);
-      const source = params.source;
-      const content = params.content;
-      const datetime = params.datetime;
       let requestToken = params.token;
       if (!requestToken) {
         const authHeader = request.headers.get('Authorization') || request.headers.get('authorization');
@@ -77,9 +74,16 @@ export default {
         }
       }
 
-      if (!source || !content || !datetime || !requestToken) {
-        return new Response('Missing required parameters: source, content, datetime, token', { status: 400 });
+      if (!requestToken) {
+        return new Response('Missing required parameter: token', { status: 400 });
       }
+
+      const beijingTime = new Date(new Date().getTime() + 8 * 60 * 60 * 1000);
+      const defaultDatetime = beijingTime.toISOString().slice(0, 19).replace('T', ' ');
+      
+      const source = params.source || params.title || '系统通知';
+      const content = params.content || '您有新消息';
+      const datetime = params.datetime || defaultDatetime;
 
       if (requestToken !== env.API_TOKEN) {
         return new Response('Invalid token', { status: 403 });
