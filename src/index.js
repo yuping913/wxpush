@@ -53,7 +53,7 @@ export default {
   async fetch(request, env, ctx) {
     const url = new URL(request.url);
     const singleSeg = url.pathname.match(/^\/([^\/]+)\/?$/);
-    if (singleSeg && singleSeg[1] && singleSeg[1] !== 'wxsend' && singleSeg[1] !== 'index.html') {
+    if (singleSeg && singleSeg[1] && singleSeg[1] !== 'wxsend' && singleSeg[1] !== 'index.html' && singleSeg[1] !== 'message') {
       const rawTokenFromPath = singleSeg[1];
       if (rawTokenFromPath !== env.API_TOKEN) {
         return new Response('Invalid token', { status: 403 });
@@ -104,7 +104,7 @@ export default {
         }
 
         const results = await Promise.all(user_list.map(userid =>
-          sendMessage(accessToken, userid, template_id, base_url, source, content, datetime)
+          sendMessage(accessToken, userid, template_id, base_url, source, content, datetime, env.API_TOKEN)
         ));
 
         const successfulMessages = results.filter(r => r.errmsg === 'ok');
@@ -123,9 +123,18 @@ export default {
     }
 
     if (url.pathname === '/message') {
-      const message = url.searchParams.get('message') || '无消息内容';
-      const date = url.searchParams.get('date') || '未知时间';
-      const source = url.searchParams.get('source') || '未知来源';
+      const message = url.searchParams.get('message') || '';
+      const date = url.searchParams.get('date') || '';
+      const source = url.searchParams.get('source') || '';
+      const sign = url.searchParams.get('sign') || '';
+      
+      const expectedSign = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source + message + date + env.API_TOKEN));
+      const expectedSignHex = Array.from(new Uint8Array(expectedSign)).map(b => b.toString(16).padStart(2, '0')).join('');
+      
+      if (sign !== expectedSignHex.substring(0, 16)) {
+        return new Response('Invalid signature', { status: 403 });
+      }
+      
       const html = `<!doctype html><html lang="zh-CN"><head><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1"/><title>消息详情</title><style>body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;background:linear-gradient(135deg,#667eea 0%,#764ba2 100%);padding:20px}.card{background:#fff;border-radius:16px;box-shadow:0 10px 40px rgba(0,0,0,0.1);padding:32px;max-width:500px;width:100%}h1{margin:0 0 24px;font-size:24px;color:#333}.info{margin:16px 0;padding:12px;background:#f5f5f5;border-radius:8px}.label{font-weight:600;color:#666;font-size:14px;margin-bottom:4px}.value{color:#333;font-size:16px;word-break:break-all}</style></head><body><div class="card"><h1>📬 消息详情</h1><div class="info"><div class="label">来源</div><div class="value">${decodeURIComponent(source)}</div></div><div class="info"><div class="label">内容</div><div class="value">${decodeURIComponent(message)}</div></div><div class="info"><div class="label">时间</div><div class="value">${decodeURIComponent(date)}</div></div></div></body></html>`;
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
@@ -156,17 +165,20 @@ async function getStableToken(appid, secret) {
   return data.access_token;
 }
 
-async function sendMessage(accessToken, userid, template_id, base_url, source, content, datetime) {
+async function sendMessage(accessToken, userid, template_id, base_url, source, content, datetime, apiToken) {
   const sendUrl = `https://api.weixin.qq.com/cgi-bin/message/template/send?access_token=${accessToken}`;
 
   const encoded_message = encodeURIComponent(content);
   const encoded_date = encodeURIComponent(datetime);
   const encoded_source = encodeURIComponent(source);
+  
+  const signData = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source + content + datetime + apiToken));
+  const sign = Array.from(new Uint8Array(signData)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
 
   const payload = {
     touser: userid,
     template_id: template_id,
-    url: `${base_url}?message=${encoded_message}&date=${encoded_date}&source=${encoded_source}`,
+    url: `${base_url}?message=${encoded_message}&date=${encoded_date}&source=${encoded_source}&sign=${sign}`,
     data: {
       SOURCE: { value: source },
       CONTENT: { value: content },
