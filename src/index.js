@@ -149,17 +149,24 @@ export default {
       
       const safeDecode = (str) => {
         try {
-          return escapeHtml(decodeURIComponent(str));
+          return decodeURIComponent(str);
         } catch (e) {
-          return escapeHtml(str);
+          return str;
         }
       };
       
-      const safeSource = safeDecode(source);
-      const safeMessage = safeDecode(message);
-      const safeDate = safeDecode(date);
+      const sanitizeHtml = (str) => {
+        return str.replace(/<script[^>]*>.*?<\/script>/gi, '')
+                  .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+                  .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                  .replace(/javascript:/gi, '');
+      };
       
-      const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f5f5;padding:20px}h1{font-size:20px;margin-bottom:20px;color:#333}p{background:#fff;padding:15px;margin:10px 0;border-radius:8px;line-height:1.6;color:#666}strong{color:#333;display:block;margin-bottom:5px}</style></head><body><h1>消息详情</h1><p><strong>来源</strong>${safeSource}</p><p><strong>内容</strong>${safeMessage}</p><p><strong>时间</strong>${safeDate}</p></body></html>`;
+      const safeSource = escapeHtml(safeDecode(source));
+      const safeMessage = sanitizeHtml(safeDecode(message));
+      const safeDate = escapeHtml(safeDecode(date));
+      
+      const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f5f5;padding:20px}h1{font-size:20px;margin-bottom:20px;color:#333}.box{background:#fff;padding:15px;margin:10px 0;border-radius:8px;line-height:1.6;color:#666}.box strong{color:#333;display:block;margin-bottom:8px}.content{color:#333;word-wrap:break-word}</style></head><body><h1>消息详情</h1><div class="box"><strong>来源</strong><div>${safeSource}</div></div><div class="box"><strong>内容</strong><div class="content">${safeMessage}</div></div><div class="box"><strong>时间</strong><div>${safeDate}</div></div></body></html>`;
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
     }
 
