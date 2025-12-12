@@ -60,11 +60,20 @@ function escapeHtml(str) {
 
 export default {
   async fetch(request, env, ctx) {
+    try {
     const url = new URL(request.url);
+    
+    // 微信验证文件
+    if (url.pathname === '/2bd66b5c2b1194f7fbed82e59f8cac8d.txt') {
+      return new Response('d7fd03efa806f32fd49df236a7ffa3057e24fed9', { 
+        headers: { 'Content-Type': 'text/plain' } 
+      });
+    }
+    
     const singleSeg = url.pathname.match(/^\/([^\/]+)\/?$/);
-    if (singleSeg && singleSeg[1] && singleSeg[1] !== 'wxsend' && singleSeg[1] !== 'index.html' && singleSeg[1] !== 'message') {
+    if (singleSeg && singleSeg[1] && singleSeg[1] !== 'wxsend' && singleSeg[1] !== 'index.html' && singleSeg[1] !== 'message' && !singleSeg[1].endsWith('.txt')) {
       const rawTokenFromPath = singleSeg[1];
-      if (rawTokenFromPath !== env.API_TOKEN) {
+      if (!env || !env.API_TOKEN || rawTokenFromPath !== env.API_TOKEN) {
         return new Response('Invalid token', { status: 403 });
       }
       const sanitizedToken = escapeHtml(rawTokenFromPath);
@@ -136,6 +145,9 @@ export default {
     }
 
     if (url.pathname === '/message') {
+      if (!env || !env.API_TOKEN) {
+        return new Response('API_TOKEN not configured', { status: 500 });
+      }
       const message = url.searchParams.get('message') || '';
       const date = url.searchParams.get('date') || '';
       const source = url.searchParams.get('source') || '';
@@ -162,6 +174,9 @@ export default {
     }
 
     return new Response('Not Found', { status: 404 });
+    } catch (error) {
+      return new Response(`Error: ${error.message}`, { status: 500 });
+    }
   },
 };
 
