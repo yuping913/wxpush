@@ -147,9 +147,17 @@ export default {
         return new Response('Invalid signature', { status: 403 });
       }
       
-      const safeSource = escapeHtml(decodeURIComponent(source));
-      const safeMessage = escapeHtml(decodeURIComponent(message));
-      const safeDate = escapeHtml(decodeURIComponent(date));
+      const safeDecode = (str) => {
+        try {
+          return escapeHtml(decodeURIComponent(str));
+        } catch (e) {
+          return escapeHtml(str);
+        }
+      };
+      
+      const safeSource = safeDecode(source);
+      const safeMessage = safeDecode(message);
+      const safeDate = safeDecode(date);
       
       const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f5f5;padding:20px}h1{font-size:20px;margin-bottom:20px;color:#333}p{background:#fff;padding:15px;margin:10px 0;border-radius:8px;line-height:1.6;color:#666}strong{color:#333;display:block;margin-bottom:5px}</style></head><body><h1>消息详情</h1><p><strong>来源</strong>${safeSource}</p><p><strong>内容</strong>${safeMessage}</p><p><strong>时间</strong>${safeDate}</p></body></html>`;
       return new Response(html, { headers: { 'Content-Type': 'text/html; charset=utf-8' } });
