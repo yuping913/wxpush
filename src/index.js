@@ -158,6 +158,9 @@ export default {
       const sanitizeHtml = (str) => {
         return str.replace(/<script[^>]*>.*?<\/script>/gi, '')
                   .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+                  .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '$1 $2')
+                  .replace(/<a[^>]*>/gi, '')
+                  .replace(/<\/a>/gi, '')
                   .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
                   .replace(/javascript:/gi, '');
       };
