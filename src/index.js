@@ -212,14 +212,18 @@ async function sendMessage(accessToken, userid, template_id, base_url, source, c
   const signData = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(source + content + datetime + apiToken));
   const sign = Array.from(new Uint8Array(signData)).map(b => b.toString(16).padStart(2, '0')).join('').substring(0, 16);
 
+  const shortSource = source.length > 38 ? source.substring(0, 38) + '...' : source;
+  const shortContent = content.length > 38 ? content.substring(0, 38) + '...' : content;
+  const shortDatetime = datetime.length > 38 ? datetime.substring(0, 38) : datetime;
+
   const payload = {
     touser: userid,
     template_id: template_id,
     url: `${base_url}?message=${encoded_message}&date=${encoded_date}&source=${encoded_source}&sign=${sign}`,
     data: {
-      SOURCE: { value: source },
-      CONTENT: { value: content },
-      DATETIME: { value: datetime }
+      SOURCE: { value: shortSource },
+      CONTENT: { value: shortContent },
+      DATETIME: { value: shortDatetime }
     }
   };
 
