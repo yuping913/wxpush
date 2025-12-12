@@ -155,17 +155,17 @@ export default {
         }
       };
       
-      const sanitizeHtml = (str) => {
-        return str.replace(/<script[^>]*>.*?<\/script>/gi, '')
-                  .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
-                  .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '$2 ($1)')
-                  .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
-                  .replace(/javascript:/gi, '');
-      };
-      
       const safeSource = escapeHtml(safeDecode(source));
       const rawMessage = safeDecode(message);
-      const safeMessage = rawMessage.includes('<') ? sanitizeHtml(rawMessage) : escapeHtml(rawMessage).replace(/\n/g, '<br>');
+      let safeMessage = rawMessage;
+      
+      safeMessage = safeMessage.replace(/<script[^>]*>.*?<\/script>/gi, '')
+                               .replace(/<iframe[^>]*>.*?<\/iframe>/gi, '')
+                               .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                               .replace(/javascript:/gi, '')
+                               .replace(/<a[^>]*href=["']([^"']*)["'][^>]*>([^<]*)<\/a>/gi, '$2 ($1)')
+                               .replace(/\n/g, '<br>');
+      
       const safeDate = escapeHtml(safeDecode(date));
       
       const html = `<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>消息</title><style>*{margin:0;padding:0;box-sizing:border-box}body{font-family:system-ui,sans-serif;background:#f5f5f5;padding:20px}h1{font-size:20px;margin-bottom:20px;color:#333}.box{background:#fff;padding:15px;margin:10px 0;border-radius:8px;line-height:1.6;color:#666}.box strong{color:#333;display:block;margin-bottom:8px}.content{color:#333;word-wrap:break-word}img{max-width:100%;height:auto;margin:10px 0}</style></head><body><h1>消息详情</h1><div class="box"><strong>来源</strong><div>${safeSource}</div></div><div class="box"><strong>内容</strong><div class="content">${safeMessage}</div></div><div class="box"><strong>时间</strong><div>${safeDate}</div></div></body></html>`;
