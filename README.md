@@ -98,16 +98,18 @@ https://<您的Worker地址>/wxsend
 
 ### 请求参数
 
-| 参数名      | 类型   | 是否必填 | 描述                                           |
-|-------------|--------|----------|------------------------------------------------|
-| `token`     | String | 是       | 您在 `API_TOKEN` 中设置的访问令牌。            |
-| `title`     | String | 是       | 消息的标题。                                   |
-| `content`   | String | 是       | 消息的具体内容。                               |
-| `appid`     | String | 否       | 临时覆盖默认的微信 AppID。                     |
-| `secret`    | String | 否       | 临时覆盖默认的微信 AppSecret。                 |
-| `userid`    | String | 否       | 临时覆盖默认的接收用户 OpenID。                  |
-| `template_id`| String | 否       | 临时覆盖默认的模板消息 ID。                    |
-| `base_url`  | String | 否       | 临时覆盖默认的跳转 URL。                       |
+| 参数名        | 类型   | 是否必填   | 描述                                                         |
+|--------------|--------|-----------|--------------------------------------------------------------|
+| `token`      | String | 是         | 您在 `API_TOKEN` 中设置的访问令牌。                          |
+| `title`      | String | 否         | 消息的标题（兼容旧版，等同于 `source`）。                    |
+| `source`     | String | 否         | 消息来源，如不提供则使用 `title` 参数或默认值"系统通知"。    |
+| `content`    | String | 否         | 消息的具体内容，如不提供则使用默认值"您有新消息"。           |
+| `datetime`   | String | 否         | 发送时间，如不提供则自动使用当前北京时间。                   |
+| `appid`      | String | 否         | 覆盖默认的微信 AppID。                                       |
+| `secret`     | String | 否         | 覆盖默认的微信 AppSecret。                                   |
+| `userid`     | String | 否         | 覆盖默认的接收用户 OpenID。                                  |
+| `template_id`| String | 否         | 覆盖默认的模板消息 ID。                                      |
+| `base_url`   | String | 否         | 覆盖默认的跳转 URL。                                         |
 
 ### 使用示例
 
